@@ -4,6 +4,8 @@ A Claude Code-native implementation of the **20-agent video script writing syste
 
 The thesis: a single prompt produces generic copy. A pipeline of focused agents — each owning one narrow responsibility, with manager agents that refuse to pass low-quality work — produces scripts that actually convert.
 
+> **See it for yourself: [`demo/README.md`](./demo/README.md)** runs the pipeline end-to-end on a sample brief and shows the side-by-side against a single-prompt baseline, with all 16 intermediate artifacts.
+
 ---
 
 ## How it works
