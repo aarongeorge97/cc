@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SupplyNow Messaging Demo — Current vs. Revised</title>
+<style>
+  :root {
+    --bg: #fafaf7;
+    --surface: #ffffff;
+    --ink: #0f1a14;
+    --ink-soft: #4a5651;
+    --line: #e5e7e2;
+    --accent: #0f1a14;
+    --accent-hover: #1f2a23;
+    --good: #1d6f42;
+    --good-bg: #e8f3ec;
+    --warn: #b54708;
+    --warn-bg: #fdf2e6;
+    --note: #1e4a8e;
+    --note-bg: #eaf0fb;
+    --max: 1200px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .top-banner {
+    background: var(--ink);
+    color: #fff;
+    padding: 14px 24px;
+    text-align: center;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+  }
+  .top-banner strong { font-weight: 600; }
+  .top-banner .hint {
+    opacity: 0.7;
+    margin-left: 12px;
+    font-size: 13px;
+  }
+  .container {
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+  .page-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+  .page-subtitle {
+    font-size: 16px;
+    color: var(--ink-soft);
+    margin: 0 0 40px;
+    max-width: 680px;
+  }
+  .section {
+    margin-bottom: 56px;
+  }
+  .section-label {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 5px 12px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+  .section-heading {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 20px;
+  }
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 820px) {
+    .compare { grid-template-columns: 1fr; }
+  }
+  .col {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .col-tag {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+  .col.current .col-tag {
+    background: var(--warn-bg);
+    color: var(--warn);
+  }
+  .col.revised .col-tag {
+    background: var(--good-bg);
+    color: var(--good);
+  }
+
+  /* ----- Mock-styled hero ----- */
+  .hero h1 {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin: 28px 0 14px;
+  }
+  .hero p {
+    font-size: 15px;
+    color: var(--ink-soft);
+    margin: 0 0 20px;
+    line-height: 1.55;
+  }
+  .cta-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-block;
+    padding: 11px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid transparent;
+    cursor: default;
+  }
+  .btn.primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn.secondary {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--line);
+  }
+  .btn.tiny {
+    padding: 7px 12px;
+    font-size: 13px;
+  }
+  .cta-extra {
+    display: block;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  /* ----- Metrics ----- */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .metrics.six { grid-template-columns: repeat(3, 1fr); }
+  .metrics.four { grid-template-columns: repeat(2, 1fr); }
+  .metric {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .metric .num {
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .metric .num.broken {
+    color: var(--warn);
+  }
+  .metric .label {
+    display: block;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+
+  /* ----- Value cards ----- */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .card {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .card h4 {
+    margin: 0 0 6px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .card p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.45;
+  }
+
+  /* ----- How It Works ----- */
+  .steps {
+    display: grid;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .step {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 14px;
+    align-items: start;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .step-num {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .step h4 { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
+  .step p { margin: 0; font-size: 13px; color: var(--ink-soft); }
+
+  /* ----- Rationale callout ----- */
+  .rationale {
+    margin-top: 16px;
+    background: var(--note-bg);
+    border-left: 3px solid var(--note);
+    border-radius: 4px;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: #163569;
+  }
+  .rationale strong { color: var(--note); }
+  .rationale ul { margin: 6px 0 0; padding-left: 20px; }
+  .rationale li { margin-bottom: 4px; }
+
+  /* ----- Inline annotation flags ----- */
+  .flag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .flag.warn { background: var(--warn-bg); color: var(--warn); }
+  .flag.good { background: var(--good-bg); color: var(--good); }
+
+  .footer-note {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="top-banner">
+    <strong>SupplyNow Messaging Demo</strong> &middot; Current vs. Revised
+    <span class="hint">Open in any browser. No build step. Resize to see mobile layout.</span>
+  </div>
+
+  <main class="container">
+    <h1 class="page-title">Homepage messaging: side-by-side proposal</h1>
+    <p class="page-subtitle">Each section below shows the live supplynow.io copy on the left and the proposed revision on the right, followed by a short note on why the change earns its place.</p>
+
+    <!-- HERO -->
+    <section class="section">
+      <span class="section-label">Section 1</span>
+      <h2 class="section-heading">Hero</h2>
+      <div class="compare">
+        <div class="col current hero">
+          <span class="col-tag">Current</span>
+          <h1>The Intelligent Logistics Network for Food Businesses</h1>
+          <p>We shop 30+ wholesalers for the best price, then deliver same-day in our refrigerated fleet — with dynamic routing, live monitoring, and full cold chain control.</p>
+          <div class="cta-row">
+            <a class="btn primary">Get Started Free</a>
+            <a class="btn secondary">See How It Works</a>
+            <a class="btn secondary">Get Your First Delivery Free</a>
+            <a class="btn secondary">Talk to Aaron →</a>
+          </div>
+          <span class="cta-extra">4 competing CTAs in the hero region.</span>
+        </div>
+        <div class="col revised hero">
+          <span class="col-tag">Revised</span>
+          <h1>Text your order. We'll have it at your kitchen by tonight.</h1>
+          <p>SupplyNow shops 30+ wholesalers, beats your current price by ~12%, and delivers same-day in our refrigerated fleet. No app. No contracts. No minimums.</p>
+          <div class="cta-row">
+            <a class="btn primary">Get your first delivery free →</a>
+            <a class="btn secondary">See a live route</a>
+          </div>
+          <span class="cta-extra">2 CTAs. Strongest risk-reversal is now primary.</span>
+        </div>
+      </div>
+      <div class="rationale">
+        <strong>Why this change.</strong>
+        <ul>
+          <li>Lead with the customer's <em>action</em> ("text your order") and <em>outcome</em> ("by tonight"), not your category ("intelligent logistics network").</li>
+          <li>Subhead opens with what the customer gets, not "We shop…" — same facts, customer POV.</li>
+          <li>Move "first delivery free" into the primary CTA. Cut the hero from 4 CTAs to 2 to remove choice paralysis.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- METRICS -->
+    <section class="section">
+      <span class="section-label">Section 2</span>
+      <h2 class="section-heading">Metrics row / social proof</h2>
+      <div class="compare">
+        <div class="col current">
+          <span class="col-tag">Current</span>
+          <div class="metrics">
+            <div class="metric"><span class="num">80 min</span><span class="label">Avg fulfillment</span></div>
+            <div class="metric"><span class="num">11.6%</span><span class="label">Avg savings per order</span></div>
+            <div class="metric"><span class="num">30+</span><span class="label">Suppliers in network</span></div>
+            <div class="metric"><span class="num">0</span><span class="label">Contracts required</span></div>
+            <div class="metric"><span class="num broken">0.0%</span><span class="label">On-time delivery <span class="flag warn">reads broken</span></span></div>
+            <div class="metric"><span class="num broken">0</span><span class="label">Customers churned <span class="flag warn">reads broken</span></span></div>
+          </div>
+        </div>
+        <div class="col revised">
+          <span class="col-tag">Revised</span>
+          <div class="metrics four">
+            <div class="metric"><span class="num">80 min</span><span class="label">Avg fulfillment</span></div>
+            <div class="metric"><span class="num">11.6%</span><span class="label">Saved per order</span></div>
+            <div class="metric"><span class="num">200+</span><span class="label">Kitchens served <span class="flag good">demand-side</span></span></div>
+            <div class="metric"><span class="num">0</span><span class="label">Customers churned in 12 months <span class="flag good">timeframed</span></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="rationale">
+        <strong>Why this change.</strong>
+        <ul>
+          <li>"0.0% on-time delivery" and a bare "0 customers churned" both render as zeros — visitors read this as "broken stat" or "no track record."</li>
+          <li>Replace supply-side stat (30+ suppliers) with demand-side proof (200+ kitchens served). Visitors care more about who already trusts you.</li>
+          <li>Reframe "0 churned" as a positive achievement by adding the timeframe ("in 12 months"). Same number, completely different read.</li>
+          <li>"0 contracts required" already lives in the value props below — drop the duplicate.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- WHY SUPPLYNOW -->
+    <section class="section">
+      <span class="section-label">Section 3</span>
+      <h2 class="section-heading">Why SupplyNow (6 value cards)</h2>
+      <div class="compare">
+        <div class="col current">
+          <span class="col-tag">Current</span>
+          <div class="cards">
+            <div class="card"><h4>Text to Order — No App Required</h4><p>—</p></div>
+            <div class="card"><h4>We Physically Shop For You</h4><p>—</p></div>
+            <div class="card"><h4>80-Minute Avg Fulfillment</h4><p>—</p></div>
+            <div class="card"><h4>USDOT-Certified Cold Chain</h4><p>—</p></div>
+            <div class="card"><h4>No Contracts, No Minimums</h4><p>—</p></div>
+            <div class="card"><h4>Cleveland HQ, Scaling Midwest</h4><p>—</p></div>
+          </div>
+        </div>
+        <div class="col revised">
+          <span class="col-tag">Revised</span>
+          <div class="cards">
+            <div class="card"><h4>Order by text</h4><p>No app, no portal. Send your list to one number.</p></div>
+            <div class="card"><h4>Best price, every line item</h4><p>We shop 30+ wholesalers in real time, not whichever rep called you back.</p></div>
+            <div class="card"><h4>At your door in 80 minutes</h4><p>Crisis order at 10pm? On your line by midnight.</p></div>
+            <div class="card"><h4>Refrigerated end-to-end</h4><p>USDOT-certified cold chain with live temperature monitoring from pickup to delivery.</p></div>
+            <div class="card"><h4>First delivery free</h4><p>No contracts, no minimums, no order too small.</p></div>
+            <div class="card"><h4>Cleveland → Midwest</h4><p>Cleveland, Columbus, Cincinnati today. Detroit, Pittsburgh, Indianapolis next.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="rationale">
+        <strong>Why this change.</strong>
+        <ul>
+          <li>Each card now pairs a customer-language headline with a concrete proof line — most current cards are headline-only.</li>
+          <li>"We Physically Shop For You" is a mechanic; "Best price, every line item" is the value the mechanic produces.</li>
+          <li>"Cleveland HQ, Scaling Midwest" is corporate language. Naming the next cities turns it into expansion proof.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section">
+      <span class="section-label">Section 4</span>
+      <h2 class="section-heading">How It Works (3 steps)</h2>
+      <div class="compare">
+        <div class="col current">
+          <span class="col-tag">Current</span>
+          <div class="steps">
+            <div class="step"><div class="step-num">1</div><div><h4>Text Your List</h4><p>—</p></div></div>
+            <div class="step"><div class="step-num">2</div><div><h4>We Shop &amp; Pick Up</h4><p>—</p></div></div>
+            <div class="step"><div class="step-num">3</div><div><h4>Delivered Refrigerated</h4><p>—</p></div></div>
+          </div>
+        </div>
+        <div class="col revised">
+          <span class="col-tag">Revised</span>
+          <div class="steps">
+            <div class="step"><div class="step-num">1</div><div><h4>Text your list</h4><p>PO, photo, or plain text. One number, any time.</p></div></div>
+            <div class="step"><div class="step-num">2</div><div><h4>We compare 30+ wholesalers</h4><p>Quoted price back in &lt;15 min. You approve before we shop. <span class="flag good">trust step</span></p></div></div>
+            <div class="step"><div class="step-num">3</div><div><h4>Same-day, refrigerated</h4><p>On your line in 80 min average. Cold-chain verified.</p></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="rationale">
+        <strong>Why this change.</strong>
+        <ul>
+          <li>Step 2 adds the missing trust beat: "you approve before we shop." This answers the unasked objection — "what if they overpay on my behalf?"</li>
+          <li>Each step now has a concrete artifact (PO/photo, quote in &lt;15 min, cold-chain verified receipt). Vague steps become a contract.</li>
+        </ul>
+      </div>
+    </section>
+
+    <p class="footer-note">
+      Mock for evaluation only. Copy is a proposal — replace with your real numbers and voice before shipping.
+      Suggested next step if the direction lands: roll the hero copy into the live site first (highest leverage), then the metrics row.
+    </p>
+  </main>
+</body>
+</html>
