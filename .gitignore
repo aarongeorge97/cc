@@ -1,0 +1,8 @@
+# Per-run pipeline artifacts (created by /write-script). Each run gets its own
+# timestamped subdirectory under script-runs/ — not meant to be committed.
+script-runs/
+
+# OS / editor noise
+.DS_Store
+*.swp
+*~
