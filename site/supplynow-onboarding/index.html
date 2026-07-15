@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SupplyNow — Customer Onboarding</title>
+  <meta name="description" content="SupplyNow — the cold intelligent fleet network for food distributors and manufacturers. Turn empty miles into margin." />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Every empty mile, turned into margin." />
+  <meta property="og:description" content="The cold intelligent fleet network for food distributors and manufacturers. Built around your lanes, not a template." />
+  <meta property="og:url" content="https://supplynow-onboarding.vercel.app/" />
+  <meta property="og:image" content="https://api.mapbox.com/styles/v1/mapbox/light-v11/static/geojson(%7B%22type%22%3A%22FeatureCollection%22%2C%22features%22%3A%5B%7B%22type%22%3A%22Feature%22%2C%22properties%22%3A%7B%22stroke%22%3A%22%23E5A823%22%2C%22stroke-width%22%3A4%2C%22stroke-opacity%22%3A0.95%7D%2C%22geometry%22%3A%7B%22type%22%3A%22MultiLineString%22%2C%22coordinates%22%3A%5B%5B%5B-82.9988%2C39.9612%5D%2C%5B-83.0458%2C42.3314%5D%5D%2C%5B%5B-82.9988%2C39.9612%5D%2C%5B-81.6944%2C41.4993%5D%5D%2C%5B%5B-82.9988%2C39.9612%5D%2C%5B-83.5379%2C41.6528%5D%5D%2C%5B%5B-82.9988%2C39.9612%5D%2C%5B-84.512%2C39.1031%5D%5D%2C%5B%5B-82.9988%2C39.9612%5D%2C%5B-79.9959%2C40.4406%5D%5D%2C%5B%5B-82.9988%2C39.9612%5D%2C%5B-86.1581%2C39.7684%5D%5D%5D%7D%7D%5D%7D),pin-s+b07c16(-82.9988,39.9612)/auto/1200x630?access_token=YOUR_MAPBOX_PUBLIC_TOKEN&amp;padding=70" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Every empty mile, turned into margin." />
+  <meta name="twitter:description" content="The cold intelligent fleet network for food distributors and manufacturers." />
+  <meta name="twitter:image" content="https://api.mapbox.com/styles/v1/mapbox/light-v11/static/geojson(%7B%22type%22%3A%22FeatureCollection%22%2C%22features%22%3A%5B%7B%22type%22%3A%22Feature%22%2C%22properties%22%3A%7B%22stroke%22%3A%22%23E5A823%22%2C%22stroke-width%22%3A4%2C%22stroke-opacity%22%3A0.95%7D%2C%22geometry%22%3A%7B%22type%22%3A%22MultiLineString%22%2C%22coordinates%22%3A%5B%5B%5B-82.9988%2C39.9612%5D%2C%5B-83.0458%2C42.3314%5D%5D%2C%5B%5B-82.9988%2C39.9612%5D%2C%5B-81.6944%2C41.4993%5D%5D%2C%5B%5B-82.9988%2C39.9612%5D%2C%5B-83.5379%2C41.6528%5D%5D%2C%5B%5B-82.9988%2C39.9612%5D%2C%5B-84.512%2C39.1031%5D%5D%2C%5B%5B-82.9988%2C39.9612%5D%2C%5B-79.9959%2C40.4406%5D%5D%2C%5B%5B-82.9988%2C39.9612%5D%2C%5B-86.1581%2C39.7684%5D%5D%5D%7D%7D%5D%7D),pin-s+b07c16(-82.9988,39.9612)/auto/1200x630?access_token=YOUR_MAPBOX_PUBLIC_TOKEN&amp;padding=70" />
+  <!-- NOTE: Mapbox token in the two og/twitter image URLs above was replaced with a placeholder for this repo copy; restore your pk. token (or deploy the file Claude sent directly). -->
+  <link rel="stylesheet" href="assets/theme.css" />
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.css" rel="stylesheet" />
+  <!-- deferred: first paint no longer waits on either CDN (canvas fallback covers total failure).
+       Deferred scripts run in document order, so mapboxgl/Lenis exist before onboarding.js runs. -->
+  <script defer src="https://api.mapbox.com/mapbox-gl-js/v3.8.0/mapbox-gl.js"></script>
+  <script defer src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+  <style>
+    /* Lenis smooth scroll */
+    html.lenis, html.lenis body { height: auto; }
+    .lenis.lenis-smooth { scroll-behavior: auto !important; }
+    .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+    .lenis.lenis-stopped { overflow: hidden; }
+    /* cinematic headline wipe + crisp tilt */
+    .hero h1[data-reveal] { clip-path: inset(-2% -8% 112% -8%); transition: opacity .9s var(--ease) .12s, transform .9s var(--ease) .12s, clip-path 1.05s var(--ease) .12s; }
+    .hero h1[data-reveal].is-visible { clip-path: inset(-2% -8% -8% -8%); }
+    [data-tilt] { transition: transform .2s var(--ease), border-color .35s var(--ease), box-shadow .35s var(--ease); will-change: transform; }
+    /* ---------------- Progress + nav ---------------- */
+    #progress-bar {
+      position: fixed; top: 0; left: 0; height: 2px; width: 100%;
+      transform: scaleX(0); transform-origin: left;
+      background: linear-gradient(90deg, var(--gold), var(--cognac));
+      z-index: 60; will-change: transform;
+    }
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px clamp(16px, 4vw, 40px);
+      background: rgba(255, 255, 255, 0.82); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--hair);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: 1.5px; font-size: 1.02rem; color: var(--ink); }
+    .brand .n { color: var(--gold-deep); }
+    .brand__sub { color: var(--ink-faint); font-weight: 500; font-size: 0.78rem; letter-spacing: 0; }
+    .nav__steps { display: flex; gap: 9px; }
+    .nav__steps [data-step] { width: 8px; height: 8px; border-radius: 50%; background: var(--hair-2); transition: all .3s var(--ease); }
+    .nav__steps [data-step].is-active { background: var(--gold); box-shadow: 0 0 0 4px rgba(229,168,35,0.15); transform: scale(1.2); }
+    .nav__right { display: flex; align-items: center; gap: 16px; }
+    .nav__home { font-size: 0.82rem; color: var(--ink-dim); font-weight: 500; }
+    @media (max-width: 640px) { .nav__home { display: none; } }
+    .nav__home:hover { color: var(--gold-deep); }
+    .nav__pct { font-family: var(--font-mono); font-weight: 600; font-size: 0.82rem; color: var(--ink-faint); min-width: 40px; text-align: right; }
+    @media (max-width: 760px) { .nav__steps, .brand__sub, .nav__home { display: none; } }
+
+    /* ---------------- Hero ---------------- */
+    .hero { min-height: 92vh; display: grid; grid-template-columns: 1.04fr 0.96fr; gap: clamp(28px, 4vw, 60px); align-items: center; padding-top: 92px; }
+    @media (max-width: 940px) { .hero { grid-template-columns: 1fr; min-height: auto; padding-top: 108px; } }
+    /* Hero background video (network-in-motion loop behind the welcome section) */
+    #welcome { position: relative; overflow: hidden; }
+    #welcome > .wrap.hero, #welcome > .cue { position: relative; z-index: 1; }
+    .hero-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+    .hero-bg video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .hero-bg::after { content: ""; position: absolute; inset: 0; background:
+      linear-gradient(90deg, rgba(255,255,255,.95) 0%, rgba(255,255,255,.88) 36%, rgba(255,255,255,.58) 64%, rgba(255,255,255,.38) 100%),
+      linear-gradient(180deg, rgba(255,255,255,.92) 0%, rgba(255,255,255,.30) 32%, rgba(255,255,255,.55) 86%, var(--bg) 100%); }
+    @media (max-width: 940px) { .hero-bg::after { background:
+      linear-gradient(180deg, rgba(255,255,255,.95) 0%, rgba(255,255,255,.82) 45%, rgba(255,255,255,.88) 100%); } }
+    .hero__progress-chip {
+      display: inline-flex; align-items: center; gap: 10px; margin-bottom: 22px;
+      padding: 7px 14px 7px 14px; border-radius: 999px; background: #fbf1d8;
+      border: 1px solid #f0e2bd; font-size: 0.82rem; color: var(--gold-deep); font-weight: 600;
+    }
+    .hero__progress-chip .seg { display: inline-flex; gap: 4px; }
+    .hero__progress-chip .seg i { width: 15px; height: 5px; border-radius: 3px; background: #e7d9b0; }
+    .hero__progress-chip .seg i.on { background: var(--gold); }
+    .hero__progress-chip .chip-pct { font-variant-numeric: tabular-nums; font-weight: 800; color: var(--ink);
+      background: var(--gold); border-radius: 999px; padding: 2px 9px; font-size: 0.78rem; letter-spacing: .01em; }
+    .hero__progress-chip .chip-pct.is-complete { background: var(--ink); color: var(--gold); }
+    .hero h1 { margin: 8px 0 20px; color: var(--ink); }
+    .hero__sub { max-width: 35ch; color: var(--ink-dim); }
+    .hero__sub em { color: var(--ink); font-style: italic; }
+    .hero__cta { margin-top: 30px; display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+    .hero__note { margin-top: 18px; font-size: 0.85rem; color: var(--ink-faint); display: flex; align-items: center; gap: 8px; }
+
+    /* lane panel */
+    .lane-panel { padding: 18px; position: relative; }
+    .lane-panel__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .lane-panel__title { font-family: var(--font-display); font-weight: 600; font-size: 0.98rem; }
+    .lane-canvas-wrap { position: relative; width: 100%; height: min(54vh, 460px); border-radius: 12px; overflow: hidden; border: 1px solid var(--hair); }
+    @media (max-width:940px){ .lane-canvas-wrap{ height: 360px; } }
+    #lane-canvas { position: absolute; inset: 0; background: #f3f1ea; }
+    #lane-map { position: absolute; inset: 0; background: #eef0f1; }
+    #lane-map .mapboxgl-ctrl-attrib { background: rgba(255,255,255,0.7); font-size: 10px; }
+    .lane-marker { width: 9px; height: 9px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
+    .lane-marker.hub { width: 13px; height: 13px; background: var(--gold); box-shadow: 0 0 0 5px rgba(229,168,35,0.18); }
+    .lane-marker__label { position: absolute; left: 14px; top: -3px; white-space: nowrap; font-size: 10px; color: var(--ink-dim); font-family: var(--font-body); font-weight: 500; text-shadow: 0 1px 3px #fff, 0 0 3px #fff; pointer-events: none; }
+    .lane-marker.hub .lane-marker__label { left: 16px; color: var(--ink); font-weight: 700; font-family: var(--font-display); }
+    .lane-marker.hub { animation: hubpulse 2.6s var(--ease) infinite; }
+    @keyframes hubpulse { 0%,100% { box-shadow: 0 0 0 5px rgba(229,168,35,0.18); } 50% { box-shadow: 0 0 0 12px rgba(229,168,35,0.04); } }
+    .live-tag { display: inline-flex; align-items: center; gap: 5px; color: var(--pos); font-family: var(--font-body); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--pos); animation: livepulse 1.8s var(--ease) infinite; }
+    @keyframes livepulse { 0% { box-shadow: 0 0 0 0 rgba(47,125,79,0.45); } 70%,100% { box-shadow: 0 0 0 6px rgba(47,125,79,0); } }
+    .hero__identity { margin-top: 16px; font-size: 0.76rem; letter-spacing: .06em; color: var(--gold-deep); font-weight: 700; text-transform: uppercase; }
+    @media (prefers-reduced-motion: reduce) { .lane-marker.hub, .live-dot { animation: none; } }
+    .lane-panel__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+    .lane-legend { display: flex; gap: 14px; font-size: 0.76rem; color: var(--ink-dim); flex-wrap: wrap; }
+    .lane-legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .lane-legend .ln { width: 16px; height: 3px; border-radius: 2px; }
+    .ln-out { background: var(--cognac); }
+    .ln-back { background: var(--neg); }
+    .ln-fill { background: var(--gold); }
+    .lane-count { font-family: var(--font-display); }
+    .lane-count b { font-size: 1.4rem; color: var(--gold-deep); }
+    .lane__state { font-size: 0.8rem; color: var(--ink-faint); transition: color .4s; }
+    .lane__state.is-loading { color: var(--amber); }
+    .lane__state.is-done { color: var(--pos); }
+    .lane-replay { background: #fff; border: 1px solid var(--hair-2); color: var(--ink-dim); border-radius: 999px; padding: 7px 14px; font-size: 0.78rem; font-family: var(--font-body); font-weight: 600; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; transition: all .3s; }
+    .lane-replay:hover { color: var(--gold-deep); border-color: var(--gold); }
+
+    .cue { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); color: var(--ink-faint); font-size: 0.72rem; letter-spacing: .12em; text-transform: uppercase; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .cue::after { content: ""; width: 1px; height: 26px; background: linear-gradient(var(--gold), transparent); animation: cuepulse 1.8s var(--ease) infinite; }
+    @keyframes cuepulse { 0%,100%{opacity:.3; height:18px} 50%{opacity:1; height:30px} }
+    @media (prefers-reduced-motion: reduce){ .cue::after{ animation: none; } }
+
+    /* ---------------- Heard ---------------- */
+    .heard { display: flex; flex-direction: column; gap: 10px; }
+    .heard__icon { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: #fdeee2; border: 1px solid #f6d8c2; color: var(--neg); }
+    .heard__icon svg { width: 20px; height: 20px; }
+    .heard__quote { font-family: var(--font-display); font-size: 1.16rem; line-height: 1.28; color: var(--ink); font-weight: 600; }
+    .heard__attrib { font-size: 0.8rem; color: var(--ink-faint); }
+    .heard__pain { font-size: 0.82rem; color: var(--ink-dim); display: flex; align-items: center; gap: 7px; margin-top: 4px; }
+    .heard__pain .pill-bad { font-size: 0.6rem; }
+    .heard__fix { font-family: var(--font-display); font-weight: 600; font-size: 1.02rem; color: var(--gold-deep); margin-top: 6px; display: flex; gap: 8px; align-items: baseline; }
+    .heard__fix::before { content: "→"; color: var(--gold-deep); }
+    .heard__body { font-size: 0.92rem; }
+
+    /* ---------------- Pilots ---------------- */
+    .pilot { display: flex; flex-direction: column; gap: 12px; }
+    .pilot__tag { font-size: 0.72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--cognac); font-weight: 700; }
+    .pilot__title { font-size: 1.4rem; }
+    .pilot__where { display: inline-flex; align-items: center; gap: 7px; font-size: 0.84rem; color: var(--ink-dim); }
+    .pilot__where svg { color: var(--gold-deep); }
+    .pilot__kpis { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 6px; }
+
+    /* ---------------- Data handshake ---------------- */
+    .data-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .datarow { display: flex; align-items: center; gap: 18px; padding: 18px 22px; }
+    .datarow__check { width: 22px; height: 22px; border-radius: 7px; border: 1.5px solid var(--hair-2); flex: none; position: relative; }
+    .datarow__check::after { content: "✓"; position: absolute; inset: 0; display: grid; place-items: center; color: var(--gold-deep); font-size: 13px; opacity: .3; }
+    .datarow__main { flex: 1; min-width: 0; }
+    .datarow__name { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; }
+    .datarow__why { font-size: 0.9rem; }
+    .datarow__src { flex: none; }
+    @media (max-width:620px){ .datarow{ flex-wrap: wrap; } .datarow__src{ margin-left: 40px; } }
+
+    /* ---------------- Teams ---------------- */
+    .team { display: flex; flex-direction: column; gap: 16px; }
+    .team__pair { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; }
+    .team__side { display: flex; flex-direction: column; gap: 3px; }
+    .team__side--ours { text-align: right; align-items: flex-end; }
+    .team__label { font-size: 0.7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+    .team__side--theirs .team__label { color: var(--cognac); }
+    .team__side--ours .team__label { color: var(--gold-deep); }
+    .team__name { font-family: var(--font-display); font-weight: 600; font-size: 1.02rem; }
+    .team__note { font-size: 0.74rem; }
+    .team__link { display: flex; gap: 4px; }
+    .team__link span { width: 5px; height: 5px; border-radius: 50%; background: var(--hair-2); animation: flow 1.6s var(--ease) infinite; }
+    .team__link span:nth-child(2){ animation-delay: .2s; } .team__link span:nth-child(3){ animation-delay: .4s; }
+    @keyframes flow { 0%,100%{ background: var(--hair-2); } 50%{ background: var(--gold); } }
+    @media (prefers-reduced-motion: reduce){ .team__link span{ animation: none; } }
+    .team__focus { font-size: 0.92rem; border-top: 1px solid var(--hair); padding-top: 14px; }
+
+    /* ---------------- Timeline ---------------- */
+    .timeline { list-style: none; max-width: 720px; margin-inline: auto; position: relative; }
+    .timeline::before { content: ""; position: absolute; left: 17px; top: 10px; bottom: 10px; width: 2px; background: linear-gradient(var(--gold), var(--hair)); }
+    .tl__step { display: flex; gap: 20px; padding: 14px 0; position: relative; }
+    .tl__node { width: 36px; height: 36px; border-radius: 50%; flex: none; display: grid; place-items: center; font-family: var(--font-display); font-weight: 600; font-size: 0.9rem; background: #fff; border: 1.5px solid var(--hair-2); color: var(--ink-dim); z-index: 1; }
+    .tl__step--done .tl__node { background: var(--gold); color: #2a1e05; border-color: var(--gold); }
+    .tl__step--active .tl__node { border-color: var(--gold); color: var(--gold-deep); box-shadow: 0 0 0 4px rgba(229,168,35,0.14); }
+    .tl__head { display: flex; align-items: baseline; gap: 12px; }
+    .tl__label { font-family: var(--font-display); font-weight: 600; font-size: 1.08rem; }
+    .tl__step--active .tl__label { color: var(--gold-deep); }
+    .tl__date { font-size: 0.78rem; color: var(--ink-faint); }
+    .tl__note { font-size: 0.9rem; }
+
+    /* ---------------- Module ---------------- */
+    .module-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px,4vw,56px); align-items: center; }
+    @media (max-width: 880px){ .module-grid{ grid-template-columns: 1fr; } }
+    .module-viz { display: grid; place-items: center; padding: 20px; }
+    .mnode { fill: var(--cognac); opacity: 0; transform-origin: center; animation: pop .6s var(--spring) forwards; animation-delay: var(--d); }
+    .mnode--core { fill: var(--gold); filter: drop-shadow(0 0 8px rgba(229,168,35,.5)); }
+    .mnode__link { stroke: rgba(138,109,59,0.4); stroke-width: 1; stroke-dasharray: 200; stroke-dashoffset: 200; animation: draw 1s var(--ease) forwards; animation-delay: var(--d); }
+    .mnode__link--sub { stroke: rgba(229,168,35,0.3); }
+    @keyframes pop { to { opacity: 1; } }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    @media (prefers-reduced-motion: reduce){ .mnode,.mnode__link{ animation: none; opacity: 1; stroke-dashoffset: 0; } }
+
+    /* ---------------- Network telemetry (real data · 112-day replay) ---------------- */
+    .telemetry { position: relative; overflow: hidden; background: #fff; border: 1px solid var(--hair); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); padding: clamp(20px, 3.4vw, 34px); }
+    .telemetry__glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(70% 90% at 50% 0%, rgba(229,168,35,.55), transparent 72%); opacity: .1; transition: opacity .35s linear; }
+    .telemetry > :not(.telemetry__glow) { position: relative; }
+    .telemetry__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px 18px; flex-wrap: wrap; margin-bottom: clamp(16px, 2.5vw, 24px); }
+    .telemetry__lede { font-family: var(--font-display); font-weight: 600; font-size: clamp(1.04rem, 1.6vw, 1.22rem); color: var(--ink); max-width: 44ch; }
+    .telemetry__sub { font-size: 0.86rem; color: var(--ink-dim); margin-top: 6px; max-width: 54ch; }
+    .tele-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .tstat { text-align: center; padding: 18px 10px 16px; background: var(--bg-2); border: 1px solid var(--hair); border-radius: 14px; }
+    .tstat__v { display: block; font-family: var(--font-display); font-weight: 700; font-variant-numeric: tabular-nums; font-size: clamp(1.9rem, 3.6vw, 2.7rem); line-height: 1.05; color: var(--gold-deep); }
+    .tstat__l { display: block; font-size: 0.84rem; color: var(--ink-dim); font-weight: 600; margin-top: 6px; }
+    .tele-playback { margin-top: clamp(18px, 3vw, 26px); display: flex; gap: 14px; align-items: center; }
+    .tele-btn { flex: none; width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--hair-2); background: #fff; color: var(--gold-deep); display: grid; place-items: center; cursor: pointer; transition: border-color .25s var(--ease), box-shadow .25s var(--ease); }
+    .tele-btn:hover { border-color: var(--gold); box-shadow: 0 0 0 4px rgba(229,168,35,.12); }
+    .tele-btn svg { width: 17px; height: 17px; }
+    .tele-track { flex: 1; min-width: 0; }
+    #tele-spark { display: block; width: 100%; max-width: 100%; height: 74px; }
+    #tele-scrub { display: block; width: 100%; margin: 4px 0 0; -webkit-appearance: none; appearance: none; height: 26px; background: transparent; cursor: pointer; }
+    #tele-scrub::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--hair-2); }
+    #tele-scrub::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 21px; height: 21px; border-radius: 50%; background: var(--gold); border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.22); margin-top: -8.5px; }
+    #tele-scrub::-moz-range-track { height: 4px; border-radius: 2px; background: var(--hair-2); }
+    #tele-scrub::-moz-range-thumb { width: 21px; height: 21px; border-radius: 50%; background: var(--gold); border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.22); }
+    .tele-caption { display: flex; justify-content: space-between; align-items: baseline; gap: 8px 16px; flex-wrap: wrap; margin-top: 8px; font-variant-numeric: tabular-nums; }
+    .tele-day { font-family: var(--font-display); font-weight: 700; color: var(--ink); font-size: 0.95rem; }
+    .tele-nums { font-family: var(--font-mono); font-size: 0.84rem; color: var(--ink-dim); }
+    .tele-idx { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-faint); }
+    .tele-foot { margin-top: clamp(14px, 2.4vw, 20px); border-top: 1px solid var(--hair); padding-top: 14px; display: flex; flex-direction: column; gap: 7px; font-size: 0.82rem; color: var(--ink-dim); }
+    .tele-foot p { position: relative; padding-left: 15px; }
+    .tele-foot p::before { content: ""; position: absolute; left: 0; top: 0.5em; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+    @media (max-width: 560px) { .tele-btn { width: 48px; height: 48px; } }
+
+    /* ---------------- Proof + CTA ---------------- */
+    .proof { overflow: hidden; border-block: 1px solid var(--hair); padding: 18px 0; mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+    .proof__track { display: inline-flex; align-items: center; gap: 26px; white-space: nowrap; animation: marquee 32s linear infinite; }
+    @keyframes marquee { to { transform: translateX(-50%); } }
+    @media (prefers-reduced-motion: reduce){ .proof__track{ animation: none; } }
+    .proof__item { color: var(--ink-dim); font-size: 0.92rem; font-weight: 600; }
+    .proof__dot { color: var(--gold); font-size: 0.6rem; }
+    .press-label { font-size: 0.72rem; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 18px; }
+    .press-strip { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 12px 30px; }
+    .press-strip a { font-family: var(--font-display); font-weight: 600; font-size: clamp(1rem, 1.6vw, 1.25rem); color: var(--ink-dim); transition: color .25s var(--ease); display: inline-flex; align-items: baseline; gap: 5px; }
+    .press-strip a:hover { color: var(--gold-deep); }
+    .press-strip a .yr { font-family: var(--font-body); font-size: 0.7rem; color: var(--ink-faint); font-weight: 500; }
+
+    /* Which are you — five modes */
+    .modes-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+    @media (max-width: 1000px) { .modes-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .modes-grid { grid-template-columns: 1fr; } }
+    .mode { display: flex; flex-direction: column; gap: 9px; padding: 20px; }
+    .mode__n { font-size: 0.76rem; color: var(--ink-faint); }
+    .mode__icon { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: #fbf1d8; border: 1px solid #f0e2bd; color: var(--gold-deep); }
+    .mode__icon svg { width: 21px; height: 21px; }
+    .mode__title { font-family: var(--font-display); font-weight: 600; font-size: 1.06rem; }
+    .mode__desc { font-size: 0.86rem; }
+
+    /* How we stack up — comparison */
+    .compare-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 16px; }
+    .compare { display: grid; grid-template-columns: 1.05fr 1.5fr 1fr 1fr 1fr; min-width: 780px; border: 1px solid var(--hair); border-radius: 16px; overflow: hidden; background: #fff; box-shadow: var(--shadow-sm); }
+    .compare > div { padding: 13px 16px; border-bottom: 1px solid var(--hair); font-size: 0.88rem; display: flex; align-items: center; gap: 6px; }
+    .compare .ch { font-family: var(--font-display); font-weight: 600; font-size: 0.95rem; background: var(--tint); color: var(--ink); }
+    .compare .ch.sn { background: linear-gradient(180deg, #fbf1d8, #f7ead0); color: var(--gold-deep); }
+    .compare .rl { font-weight: 600; color: var(--ink); background: var(--bg-2); }
+    .compare .cell.sn { background: #fdf7e8; color: var(--ink); font-weight: 600; }
+    .compare .cell.alt { color: var(--ink-dim); }
+    .compare .tick { color: var(--gold-deep); font-weight: 700; }
+    .compare > div:nth-last-child(-n+5) { border-bottom: 0; }
+    /* SupplyNow column lights up cell-by-cell on scroll */
+    .compare .cell.sn { opacity: .3; transform: translateX(-8px); }
+    .compare-wrap.is-visible .cell.sn { animation: cellin .5s var(--ease-out) forwards; animation-delay: var(--d, 0s); }
+    @keyframes cellin { to { opacity: 1; transform: none; } }
+    .compare .tick { display: inline-block; }
+    .compare-wrap.is-visible .tick { animation: tickpop .4s var(--spring) both; animation-delay: calc(var(--d, 0s) + .18s); }
+    @keyframes tickpop { from { transform: scale(0); } to { transform: scale(1); } }
+    @media (prefers-reduced-motion: reduce) { .compare .cell.sn { opacity: 1 !important; transform: none !important; animation: none !important; } .compare-wrap.is-visible .tick { animation: none; } }
+
+    /* Why now — stat band (the measurable moment) */
+    .stat-band { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: clamp(28px, 4vw, 44px); }
+    @media (max-width: 700px) { .stat-band { grid-template-columns: 1fr; } }
+    .stat-b { text-align: center; padding: 26px 18px; background: #fff; border: 1px solid var(--hair); border-radius: 16px; box-shadow: var(--shadow-sm); }
+    .stat-b__v { font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3rem); line-height: 1; color: var(--gold-deep); }
+    .stat-b__l { font-size: 0.88rem; color: var(--ink-dim); margin-top: 8px; font-weight: 600; }
+    .stat-b__s { font-size: 0.76rem; margin-top: 4px; }
+
+    /* Quote a lane — micro-form */
+    .lane-quote { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 30px; }
+    .lane-quote input, .lane-quote select { background: #fff; border: 1px solid var(--hair-2); border-radius: 999px; padding: 12px 18px; font-family: var(--font-body); font-size: 0.94rem; color: var(--ink); min-width: 180px; }
+    .lane-quote input:focus, .lane-quote select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(229,168,35,.15); }
+    .lane-quote__arrow { color: var(--gold-deep); font-weight: 700; font-size: 1.1rem; }
+    @media (max-width: 620px) { .lane-quote input, .lane-quote select { min-width: 0; flex: 1 1 100%; } .lane-quote__arrow { display: none; } }
+
+    /* animated route divider */
+    .route-divider { max-width: var(--maxw); margin: 0 auto; padding: 4px clamp(20px, 5vw, 48px); }
+    .rd-flow { animation: rd-dash 1.3s linear infinite; }
+    @keyframes rd-dash { to { stroke-dashoffset: -22; } }
+    .rd-truck { animation: rd-move 7s linear infinite; }
+    @keyframes rd-move { 0% { transform: translateX(30px); } 100% { transform: translateX(1168px); } }
+    @media (prefers-reduced-motion: reduce) { .rd-flow, .rd-truck { animation: none; } }
+    .cta-final { text-align: center; }
+    .cta-final h2 { max-width: 20ch; margin: 0 auto 16px; }
+    .cta-final .hero__cta { justify-content: center; }
+
+    footer { text-align: center; padding: 44px 0 60px; color: var(--ink-faint); font-size: 0.82rem; }
+    footer a { color: var(--gold-deep); }
+    footer .addr { margin-top: 6px; font-size: 0.76rem; }
+
+    #toast { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: #fff; padding: 10px 20px; border-radius: 999px; font-size: 0.86rem; opacity: 0; pointer-events: none; transition: all .3s var(--ease); z-index: 80; box-shadow: var(--shadow); }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .section-head { max-width: 660px; margin-bottom: clamp(32px, 5vw, 52px); }
+    .section-head.center { margin-inline: auto; }
+  </style>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+  <div id="progress-bar"></div>
+
+  <nav class="nav">
+    <a class="brand" id="brand-home" href="#welcome">
+      <img src="assets/brand/supplynow-logo-sm.png" alt="" style="height:24px;width:auto;display:inline-block;vertical-align:middle;margin-right:8px">SUPPLY<span class="n">NOW</span>&nbsp;<span class="brand__sub" data-tpl>· Onboarding · {{name}}</span>
+    </a>
+    <div class="nav__steps" aria-hidden="true">
+      <span data-step="welcome" title="Welcome"></span>
+      <span data-step="heard" title="What we heard"></span>
+      <span data-step="modes" title="Which are you"></span>
+      <span data-step="plan" title="The plan"></span>
+      <span data-step="data" title="Data handshake"></span>
+      <span data-step="teams" title="Teams"></span>
+      <span data-step="golive" title="Go-live"></span>
+      <span data-step="compare" title="How we stack up"></span>
+      <span data-step="why" title="Why now"></span>
+      <span data-step="module" title="The module"></span>
+      <span data-step="cta" title="Start"></span>
+    </div>
+    <div class="nav__right">
+      <a class="nav__home" data-link="network" target="_blank" rel="noopener">supplynow.io/network ↗</a>
+      <div class="nav__pct" id="progress-pct">0%</div>
+    </div>
+  </nav>
+
+  <main>
+    <!-- ============ 1 · WELCOME ============ -->
+    <section id="welcome" class="section">
+      <div class="hero-bg" aria-hidden="true">
+        <video id="hero-bg-video" muted loop playsinline autoplay preload="metadata"
+               poster="assets/media/hero-network-poster.jpg">
+          <source src="assets/media/hero-network-loop.mp4" type="video/mp4">
+          <source src="https://d8j0ntlcm91z4.cloudfront.net/user_3DGBXZ50dFhg3pBa0Nb42Yz7oiY/hf_20260706_023125_dbf6e66a-341a-45c3-9cf9-3c9a2fd8a56d.mp4" type="video/mp4">
+        </video>
+      </div>
+      <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var v = document.getElementById('hero-bg-video'); if (!v) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          v.removeAttribute('autoplay'); v.pause(); return;
+        }
+        if ('IntersectionObserver' in window) {
+          new IntersectionObserver(function (es) {
+            es.forEach(function (e) { if (e.isIntersecting) { v.play().catch(function(){}); } else { v.pause(); } });
+          }, { threshold: 0.1 }).observe(v);
+        }
+      });
+      </script>
+      <div class="wrap hero">
+        <div class="hero__text">
+          <div class="hero__progress-chip" data-reveal>
+            <span class="chip-pct" id="chip-pct" aria-hidden="true">14%</span>
+            <span class="seg" id="chip-segs"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+            <span id="chip-text" data-tpl>Step 1 of 7 complete — Discovery ✓ {{callDate}}</span>
+          </div>
+          <div class="kicker" data-bind="hero.kicker" data-reveal style="--i:1"></div>
+          <h1 class="display" data-bind="hero.headline" data-reveal style="--i:2"></h1>
+          <p class="lede hero__sub" data-bind="hero.sub" data-reveal style="--i:3"></p>
+          <div class="hero__cta" data-reveal style="--i:4">
+            <a class="btn btn-primary" data-magnetic data-link="calendly" target="_blank" rel="noopener">
+              Book the 30-minute working session
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+            <a class="btn btn-ghost" href="#heard">See the plan</a>
+          </div>
+          <div class="hero__note" data-reveal style="--i:5">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--gold-deep)" stroke-width="1.8"><path d="M12 3 5 6v6c0 4 3 6.5 7 9 4-2.5 7-5 7-9V6z"/><path d="m9 12 2 2 4-4"/></svg>
+            Embedded service · no charge until we prove it on your lanes
+          </div>
+          <div class="hero__identity" data-reveal style="--i:6">Same-day cold chain for Midwest food distributors &amp; manufacturers — embedded routes, not brokered loads</div>
+        </div>
+
+        <div class="lane-panel glass" data-reveal="scale" style="--i:2">
+          <div class="lane-panel__head">
+            <span class="lane-panel__title">Your nightly network <span class="live-tag"><span class="live-dot"></span>live</span></span>
+            <span class="chip"><span class="dot"></span> <span data-tpl>{{regions}}</span></span>
+          </div>
+          <div class="lane-canvas-wrap">
+            <div id="lane-map" role="img" aria-label="Map of the nightly network: trucks leave the hub loaded and return empty, then the empty return legs fill with loads."></div>
+            <canvas id="lane-canvas" role="img" aria-label="Network diagram: outbound legs loaded, return legs empty then filling." hidden></canvas>
+          </div>
+          <div class="lane-panel__foot">
+            <div class="lane-legend">
+              <span><i class="ln ln-out"></i> Outbound · loaded</span>
+              <span><i class="ln ln-back"></i> Return · empty</span>
+              <span><i class="ln ln-fill"></i> Return · loaded</span>
+            </div>
+            <div class="lane-count"><b id="legs-count">0</b> / <span id="legs-total">8</span> return legs loaded</div>
+          </div>
+          <div class="lane-panel__foot">
+            <span class="lane__state" id="lane-state" aria-live="polite">Tonight, every return leg runs empty.</span>
+            <button class="lane-replay" id="lane-replay">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v4h4"/></svg>
+              Fill the backhaul
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="cue">scroll</div>
+    </section>
+
+    <!-- ============ 2 · WHAT WE HEARD ============ -->
+    <section id="heard" class="section">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <div class="kicker">What we heard</div>
+          <h2 class="h1" data-tpl>You told us the problem.<br><span class="grad-text">We were listening.</span></h2>
+          <p class="lede" style="margin-top:14px" data-bind="heardIntro"></p>
+        </div>
+        <div class="grid g-3" id="heard-grid"></div>
+      </div>
+    </section>
+
+    <!-- ============ WHICH ARE YOU (FIVE MODES) ============ -->
+    <section id="modes" class="section">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <div class="kicker">Which are you</div>
+          <h2 class="h1">Most teams see themselves in one. <span class="grad-text">Inside 60 seconds.</span></h2>
+          <p class="lede" style="margin-top:14px">Five ways to run with us — from a one-off spot run to a full lane-share. Pick the one that sounds like you; we shape the pilot around it.</p>
+        </div>
+        <div class="modes-grid" id="modes-grid"></div>
+      </div>
+    </section>
+
+    <!-- ============ 3 · THE PLAN ============ -->
+    <section id="plan" class="section">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <div class="kicker">The plan</div>
+          <h2 class="h1">Two pilots. <span class="grad-text">Your pick of where.</span></h2>
+          <p class="lede" style="margin-top:14px" data-bind="planIntro"></p>
+        </div>
+        <div class="grid g-2" id="pilots-grid"></div>
+      </div>
+    </section>
+
+    <!-- ============ 4 · DATA HANDSHAKE ============ -->
+    <section id="data" class="section">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <div class="kicker">The data handshake</div>
+          <h2 class="h1">Three pulls. <span class="grad-text">That's the whole ask.</span></h2>
+          <p class="lede" style="margin-top:14px">Your team is already AI-ready — Databricks, Power BI, clean pipelines. We've done the public mapping; these three sharpen it into a real lane model. Built to drop straight out of your stack.</p>
+        </div>
+        <ul class="data-list" id="data-grid"></ul>
+        <div class="row" style="margin-top:26px; justify-content:center" data-reveal>
+          <a class="btn btn-primary" data-magnetic href="intake.html" target="_blank" rel="noopener">Open the cold-chain intake form</a>
+          <button class="btn btn-ghost" data-copy="target" data-copy-target="#data-grid">Copy the data request</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 5 · TEAMS ============ -->
+    <section id="teams" class="section">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <div class="kicker">Meet the teams</div>
+          <h2 class="h1" data-bind="teamsHeadline"></h2>
+          <p class="lede" style="margin-top:14px">Here's the map so you don't have to think about it — two clean introductions, both sides aligned before the first call.</p>
+        </div>
+        <div class="grid g-2" id="teams-grid"></div>
+      </div>
+    </section>
+
+    <!-- ============ 6 · GO-LIVE ============ -->
+    <section id="golive" class="section">
+      <div class="wrap">
+        <div class="section-head center" data-reveal>
+          <div class="kicker" style="justify-content:center">Go-live</div>
+          <h2 class="h1">From discovery to <span class="grad-text">delivering</span>.</h2>
+          <p class="lede" style="margin-top:14px">No long runway — we deploy lanes in days, not quarters. We move at the pace you set, and you don't pay until it's working on your lanes. Standard SLA: ≥98% on-time &amp; on-temp.</p>
+        </div>
+        <ul class="timeline" id="timeline"></ul>
+      </div>
+    </section>
+
+    <!-- ============ HOW WE STACK UP ============ -->
+    <div class="route-divider" aria-hidden="true">
+      <svg viewBox="0 0 1200 56" preserveAspectRatio="none" width="100%" height="52">
+        <line x1="30" y1="28" x2="1170" y2="28" stroke="var(--hair-2)" stroke-width="2"/>
+        <line x1="30" y1="28" x2="1170" y2="28" stroke="var(--gold)" stroke-width="2.5" stroke-dasharray="10 12" class="rd-flow"/>
+        <circle cx="30" cy="28" r="5" fill="var(--gold)"/>
+        <circle cx="410" cy="28" r="4" fill="var(--cognac)"/>
+        <circle cx="790" cy="28" r="4" fill="var(--cognac)"/>
+        <circle cx="1170" cy="28" r="5" fill="var(--gold)"/>
+        <g class="rd-truck"><rect x="-15" y="20" width="22" height="13" rx="2.5" fill="var(--ink)"/><rect x="7" y="23" width="7" height="10" rx="1.5" fill="var(--gold-deep)"/></g>
+      </svg>
+    </div>
+    <section id="compare" class="section" style="padding-top:clamp(40px,7vh,80px)">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <div class="kicker">How we stack up</div>
+          <h2 class="h1">Committed lanes, <span class="grad-text">not spot loads.</span></h2>
+          <p class="lede" style="margin-top:14px">The whole difference, line by line — against the load board, the traditional 3PL, and buying your own trucks.</p>
+        </div>
+        <div class="compare-wrap" data-reveal><div class="compare" id="compare-grid"></div></div>
+      </div>
+    </section>
+
+    <!-- ============ WHY NOW ============ -->
+    <section id="why" class="section">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <div class="kicker">Why now</div>
+          <h2 class="h1">The timing isn't luck. <span class="grad-text">It's the point.</span></h2>
+          <p class="lede" style="margin-top:14px">Three shifts made the cold intelligent fleet network possible — and made waiting the expensive option.</p>
+        </div>
+        <div class="grid g-3" id="why-grid"></div>
+        <div class="stat-band" id="stat-band"></div>
+      </div>
+    </section>
+
+    <!-- ============ 7 · MODULE ============ -->
+    <section id="module" class="section">
+      <div class="wrap module-grid">
+        <div data-reveal="left">
+          <div class="kicker">Powered by Rurik</div>
+          <h2 class="h2" data-bind="module.headline" style="margin:10px 0 16px"></h2>
+          <p class="lede" data-bind="module.body"></p>
+          <p style="margin-top:16px; font-family:var(--font-display); font-size:1.1rem; line-height:1.4; color:var(--ink); font-style:italic; border-left:2px solid var(--gold); padding-left:16px">You don't buy a truck — you buy a slot in a network that knows what every other truck is doing right now.</p>
+          <div class="row" style="margin-top:22px">
+            <span class="chip"><span class="dot"></span> Self-learning</span>
+            <span class="chip"><span class="dot"></span> Self-evolving</span>
+            <span class="chip"><span class="dot"></span> Margin as a science</span>
+          </div>
+        </div>
+        <div class="module-viz" id="module-viz" data-reveal="right"></div>
+      </div>
+    </section>
+
+    <!-- ============ PROOF + CTA ============ -->
+    <!-- ============ THE NETWORK IN MOTION (video band) ============ -->
+    <section id="motion" class="section" aria-label="The network in motion" style="padding-block:clamp(30px,5vh,60px)">
+      <div class="wrap center" style="margin-bottom:22px">
+        <div class="kicker" data-reveal>The network in motion</div>
+        <h2 class="h2" data-reveal style="--i:1;margin-top:10px">Cold, intelligent, already rolling.</h2>
+      </div>
+      <div class="wrap">
+        <div style="position:relative;border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow)" data-reveal="scale">
+          <video id="motion-video" muted loop playsinline autoplay preload="metadata"
+                 poster="assets/media/intel-fleet-poster.jpg"
+                 style="width:100%;display:block;aspect-ratio:16/9;object-fit:cover"
+                 aria-label="A refrigerated truck rolling down a highway with an intelligent telemetry trail.">
+            <source src="assets/media/intel-fleet-loop.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
+      <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var v = document.getElementById('motion-video'); if (!v) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          v.removeAttribute('autoplay'); v.pause(); return;
+        }
+        if ('IntersectionObserver' in window) {
+          new IntersectionObserver(function (es) {
+            es.forEach(function (e) { if (e.isIntersecting) { v.play().catch(function(){}); } else { v.pause(); } });
+          }, { threshold: 0.25 }).observe(v);
+        }
+      });
+      </script>
+
+      <!-- Real telemetry: stat strip + 112-day day-by-day playback (window.SN_NETWORK) -->
+      <div class="wrap" style="margin-top:clamp(20px,3.5vw,34px)">
+        <div class="telemetry" id="net-telemetry" data-reveal="scale">
+          <div class="telemetry__glow" id="tele-glow" aria-hidden="true"></div>
+          <div class="telemetry__head">
+            <div>
+              <p class="telemetry__lede">This isn't a projection — it's a window of our actual routing telemetry.</p>
+              <p class="telemetry__sub">Every route from a 112-day window (Dec 31, 2025 – Apr 21, 2026), replayed day by day below.</p>
+            </div>
+            <span class="chip"><span class="dot"></span> our routing system · 112-day window</span>
+          </div>
+          <div class="tele-strip">
+            <div class="tstat"><b class="tstat__v" id="tele-n-routes">855</b><span class="tstat__l">routes</span></div>
+            <div class="tstat"><b class="tstat__v" id="tele-n-miles">78,036</b><span class="tstat__l">miles</span></div>
+            <div class="tstat"><b class="tstat__v" id="tele-n-stops">3,803</b><span class="tstat__l">stops</span></div>
+          </div>
+          <div id="tele-playback">
+            <div class="tele-playback">
+              <button class="tele-btn" id="tele-toggle" type="button" aria-pressed="false" aria-label="Play the day-by-day replay">
+                <svg id="tele-ic-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+                <svg id="tele-ic-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="display:none"><path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z"/></svg>
+              </button>
+              <div class="tele-track">
+                <canvas id="tele-spark" aria-hidden="true"></canvas>
+                <input type="range" id="tele-scrub" min="0" max="111" step="1" value="0" aria-label="Scrub through the 112-day window, day by day" />
+              </div>
+            </div>
+            <div class="tele-caption">
+              <span><span class="tele-day" id="tele-day">Dec 31, 2025</span> <span class="tele-nums" id="tele-nums">9 routes · 597 mi · 27 stops</span></span>
+              <span class="tele-idx" id="tele-idx">day 1 of 112</span>
+            </div>
+          </div>
+          <div class="tele-foot">
+            <p>The rhythm is real — weekdays heavy, weekends near zero.</p>
+            <p>Closing tempo, final 14 days of the window (from Apr 8, 2026): 116 routes — about 58 a week.</p>
+            <p>In the window: Cleveland · Akron · Columbus · Indianapolis · Pittsburgh · Wilkes-Barre · Dearborn.</p>
+            <p>The same telemetry feeds the routing brain — dwell-heavy stops and single-stop runs get flagged automatically.</p>
+          </div>
+        </div>
+      </div>
+      <script src="assets/network-data.js"></script>
+      <script>
+      // Telemetry strip count-up + 112-day 4D playback. Vanilla, no deps.
+      // Data: window.SN_NETWORK (assets/network-data.js) — historical window, never "live".
+      (function () {
+        'use strict';
+        function ready(fn) {
+          if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+          else fn();
+        }
+        ready(function () {
+          var root = document.getElementById('net-telemetry');
+          if (!root) return;
+          var NET = window.SN_NETWORK;
+          var playbackEl = document.getElementById('tele-playback');
+          if (!NET || !NET.totals || !NET.days || !NET.days.length) {
+            // data module failed to load: keep the static totals, drop the player
+            if (playbackEl) playbackEl.hidden = true;
+            return;
+          }
+          var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          var days = NET.days;
+          var maxR = 0;
+          for (var k = 0; k < days.length; k++) if (days[k].r > maxR) maxR = days[k].r;
+
+          function fmt(n) { return Math.round(n).toLocaleString('en-US'); }
+          var MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          function fmtDate(s) { var p = s.split('-'); return MO[+p[1] - 1] + ' ' + (+p[2]) + ', ' + p[0]; }
+
+          // ---- stat strip: count up on reveal ------------------------------
+          var stats = [
+            { el: document.getElementById('tele-n-routes'), v: NET.totals.routes },
+            { el: document.getElementById('tele-n-miles'), v: NET.totals.miles },
+            { el: document.getElementById('tele-n-stops'), v: NET.totals.stops }
+          ];
+          var counted = false;
+          function setFinal() { stats.forEach(function (s) { if (s.el) s.el.textContent = fmt(s.v); }); }
+          function countUp() {
+            if (counted) return;
+            counted = true;
+            var t0 = performance.now(), dur = 1400;
+            function tick(t) {
+              var p = Math.min(1, (t - t0) / dur);
+              var e = 1 - Math.pow(1 - p, 3);
+              stats.forEach(function (s) { if (s.el) s.el.textContent = fmt(s.v * e); });
+              if (p < 1) requestAnimationFrame(tick); else setFinal();
+            }
+            requestAnimationFrame(tick);
+          }
+
+          // ---- 4D playback: sparkline + playhead + ticking caption ---------
+          var canvas = document.getElementById('tele-spark');
+          var ctx = canvas && canvas.getContext ? canvas.getContext('2d') : null;
+          var scrub = document.getElementById('tele-scrub');
+          var btn = document.getElementById('tele-toggle');
+          var icPlay = document.getElementById('tele-ic-play');
+          var icPause = document.getElementById('tele-ic-pause');
+          var dayEl = document.getElementById('tele-day');
+          var numsEl = document.getElementById('tele-nums');
+          var idxEl = document.getElementById('tele-idx');
+          var glowEl = document.getElementById('tele-glow');
+          var idx = 0, playing = false, raf = 0, last = 0, acc = 0, userPaused = false;
+          var RATE = 8; // days per second
+
+          if (scrub) scrub.max = String(days.length - 1);
+
+          function draw(cur) {
+            if (!ctx) return;
+            var w = canvas.clientWidth || 300, h = 74;
+            var dpr = window.devicePixelRatio || 1;
+            if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+              canvas.width = Math.round(w * dpr);
+              canvas.height = Math.round(h * dpr);
+            }
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.clearRect(0, 0, w, h);
+            var n = days.length, gap = 1;
+            var bw = Math.max(1, (w - (n - 1) * gap) / n);
+            var baseY = h - 10;
+            ctx.fillStyle = '#e6e1d4';               // baseline so zero days read as zero
+            ctx.fillRect(0, baseY, w, 1);
+            for (var i = 0; i < n; i++) {
+              var x = i * (bw + gap);
+              if (days[i].r === 0) {                 // weekends / holidays: visibly at zero
+                ctx.fillStyle = '#e9e4d6';
+                ctx.fillRect(x, baseY - 2, bw, 2);
+              } else {
+                var bh = (days[i].r / maxR) * (baseY - 8);
+                ctx.fillStyle = i <= cur ? '#e5a823' : '#efe4c8';
+                ctx.fillRect(x, baseY - bh, bw, bh);
+              }
+            }
+            var px = cur * (bw + gap) + bw / 2;      // playhead
+            ctx.fillStyle = '#b07c16';
+            ctx.fillRect(px - 0.75, 2, 1.5, baseY + 4);
+            ctx.beginPath();
+            ctx.arc(px, 4, 3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          function setDay(i) {
+            idx = ((i % days.length) + days.length) % days.length;
+            var d = days[idx];
+            if (dayEl) dayEl.textContent = fmtDate(d.d);
+            if (numsEl) numsEl.textContent = d.r + (d.r === 1 ? ' route · ' : ' routes · ') + fmt(d.mi) + ' mi · ' + d.s + (d.s === 1 ? ' stop' : ' stops');
+            if (idxEl) idxEl.textContent = 'day ' + (idx + 1) + ' of ' + days.length;
+            if (scrub) {
+              if (String(scrub.value) !== String(idx)) scrub.value = String(idx);
+              scrub.setAttribute('aria-valuetext', fmtDate(d.d) + ' — ' + d.r + ' routes, ' + fmt(d.mi) + ' miles, ' + d.s + ' stops');
+            }
+            if (glowEl) glowEl.style.opacity = (0.08 + 0.42 * (maxR ? d.r / maxR : 0)).toFixed(3);
+            draw(idx);
+          }
+
+          function setIcons() {
+            if (icPlay) icPlay.style.display = playing ? 'none' : '';
+            if (icPause) icPause.style.display = playing ? '' : 'none';
+            if (btn) {
+              btn.setAttribute('aria-pressed', playing ? 'true' : 'false');
+              btn.setAttribute('aria-label', playing ? 'Pause the day-by-day replay' : 'Play the day-by-day replay');
+            }
+          }
+          function step(ts) {
+            if (!playing) return;
+            if (!last) last = ts;
+            acc += (ts - last) * RATE / 1000;
+            last = ts;
+            if (acc >= 1) { var n = Math.floor(acc); acc -= n; setDay(idx + n); }
+            raf = requestAnimationFrame(step);
+          }
+          function play() {
+            if (playing) return;
+            playing = true; last = 0; acc = 0;
+            setIcons();
+            raf = requestAnimationFrame(step);
+          }
+          function pause() {
+            if (!playing) return;
+            playing = false;
+            setIcons();
+            cancelAnimationFrame(raf);
+          }
+
+          if (btn) btn.addEventListener('click', function () {
+            if (playing) { userPaused = true; pause(); } else { userPaused = false; play(); }
+          });
+          if (scrub) scrub.addEventListener('input', function () { userPaused = true; pause(); setDay(+scrub.value); });
+          window.addEventListener('resize', function () { draw(idx); });
+
+          setIcons();
+          setDay(0);
+
+          if (reduced || !('IntersectionObserver' in window)) {
+            setFinal(); // reduced motion: final values rendered statically, no autoplay; scrub + button still work
+            return;
+          }
+          stats.forEach(function (s) { if (s.el) s.el.textContent = '0'; });
+          new IntersectionObserver(function (es) {
+            es.forEach(function (e) {
+              if (e.isIntersecting) { countUp(); if (!userPaused) play(); }
+              else pause();
+            });
+          }, { threshold: 0.3 }).observe(root);
+        });
+      })();
+      </script>
+    </section>
+
+    <section id="cta" class="section">
+      <div class="wrap" data-reveal style="text-align:center; margin-bottom: clamp(46px,7vw,82px)">
+        <div class="press-label">Featured in</div>
+        <div class="press-strip" id="press-strip"></div>
+      </div>
+      <div class="proof" style="margin-bottom: clamp(50px,8vw,90px)">
+        <div class="proof__track" id="proof-track"></div>
+      </div>
+      <div class="wrap cta-final" data-reveal>
+        <div class="kicker" style="justify-content:center">Let's start</div>
+        <h2 class="display" data-tpl>Ready when you are, {{first}}.</h2>
+        <p class="lede" style="max-width:48ch; margin:0 auto 6px">Tell us the lane — we'll come back with a number. Book the 30 minutes, share the three pulls, and you'll have a lane model and a go-live plan in your hands fast.</p>
+        <div class="hero__cta" style="margin-top:28px">
+          <a class="btn btn-primary" data-magnetic data-link="calendly" target="_blank" rel="noopener">
+            Book the 30-minute session
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn btn-ghost" data-link="email" id="email-link">Talk to Aaron directly</a>
+        </div>
+        <div class="lane-quote" data-reveal style="--i:2">
+          <input id="lq-from" placeholder="From — city or ZIP" aria-label="Lane origin" />
+          <span class="lane-quote__arrow" aria-hidden="true">→</span>
+          <input id="lq-to" placeholder="To — city or ZIP" aria-label="Lane destination" />
+          <select id="lq-temp" aria-label="Temperature class">
+            <option>Refrigerated</option><option>Frozen</option><option>Cool</option><option>Ambient</option><option>Mixed</option>
+          </select>
+          <button class="btn btn-ink" id="lq-go">Quote this lane</button>
+        </div>
+        <p class="faint" data-reveal style="--i:3; margin-top:12px; font-size:0.8rem">No forms, no portal — this opens an email straight to Aaron with your lane in the subject line.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p><b>SupplyNow</b> — the cold intelligent fleet network for food distributors and manufacturers. <a data-link="email" id="footer-email">aaron@supplynow.org</a></p>
+      <p class="addr">2800 Euclid Ave, Suite 310, Cleveland, OH 44115 · © 2026 SupplyNow, Inc.</p>
+      <p class="faint" style="margin-top:8px; font-size:0.74rem">This onboarding page is a working plan, not a contract. The map illustrates the mechanism — your real figures come from your data.</p>
+    </div>
+  </footer>
+
+  <script defer src="assets/customers.js"></script>
+  <script defer src="assets/roads.js"></script>
+  <script defer src="assets/lanemap-mapbox.js"></script>
+  <script defer src="assets/onboarding.js"></script>
+  <script>
+    // email → mailto; brand → homepage
+    // (waits for DOMContentLoaded: the deferred scripts above must define SUPPLYNOW first)
+    document.addEventListener('DOMContentLoaded', function () {
+      var L = (window.SUPPLYNOW && window.SUPPLYNOW.links) || {};
+      var e = L.email || 'aaron@supplynow.org';
+      document.querySelectorAll('#email-link, #footer-email').forEach(function (a) {
+        a.setAttribute('href', 'mailto:' + e);
+        if (a.id === 'footer-email') a.textContent = e;
+      });
+      var home = L.homepage;
+      if (home) { var b = document.getElementById('brand-home'); if (b) { b.setAttribute('href', home); b.setAttribute('target', '_blank'); b.setAttribute('rel', 'noopener'); } }
+    });
+  </script>
+</body>
+</html>
